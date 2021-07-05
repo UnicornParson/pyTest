@@ -1,2 +1,11 @@
 # pyTest
 python test projects ans samples
+
+#youid
+generate and check IDs
+
+#dataSet
+some datasets
+
+##temperature
+data from temperature sensor
