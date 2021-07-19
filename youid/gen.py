@@ -50,7 +50,7 @@ def progress(status, remaining, total):
 
 lastIdSeed = strToSeed(lastIdStr)
 countPerRun = 100
-countPerCommit = 30;
+countPerCommit = 100;
 countPerTimeCheck = 10
 try:
   sys.stdout.flush()
@@ -75,7 +75,7 @@ try:
   t0 = time.time()
   for i in range (initialSeed, lastIdSeed):
     s = makeSeedBound(seedToStr(i), 11, 11)
-    print(str(i) + "->" + s + " << " + str(strToSeed(s)))
+    print(str(i) + " -> " + s)
     sys.stdout.flush()
     q = "INSERT INTO 'main'.'youids'('seed','idstr') VALUES (%d,'%s');" % (i, s)
     cursor.execute(q)
