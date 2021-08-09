@@ -1,0 +1,35 @@
+source http://forum.haddan.ru/showthread.php?t=7336
+shop api https://haddan.ru/inner/api_shop.php
+
+format
+<haddan><lastupdatetime txt="08-08-21 23:30:01">1628454601</lastupdatetime>
+	<shop id="65" name="а б в" description="dddd" ownerid="30707" opentill="1618786851" money="1000">
+		<good>
+			<ttid>32</ttid>
+			<sell>90</sell>
+			<buy>499.99</buy>
+			<count>887</count>
+			<thingname>Серебро</thingname>
+		</good>
+		
+		
+lastupdatetime - содержит в себе unixtime последнего обновления. аттрибут txt содержит это время в текстовом виде
+далее идут теги shop - каждому тегу соответствует один магазин.
+Аттрибуты:
+id - id магазина
+name - название
+description - описание
+ownerid - id хозяина
+opentill - если магазин открыт за СМС, то в этом поле unixtime значение того момента, до которого открыт магазин
+money - количество денег в магазине. Возможные значения
+0: 0-99 мн,
+100: 100-999 мн
+1000: 1000+ мн
+
+внутри этого тега содержатся от 0 и больше тегов good - товар, внутри которых могут содержаться какие-то или все теги:
+ttid - артикул вещи
+sell - цена продажи
+buy - цена скупки
+count - количество
+thingname - название
+flags - содержит одно из следующих значений 'nobuy','nosell','nobuy,nosell' флаги товара - не продавать, не скупать.
