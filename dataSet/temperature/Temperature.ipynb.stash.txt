@@ -1,0 +1,31 @@
+## merger 
+%%time
+## merge data
+counter = 0
+headersWrote = False
+frames = []
+filelist = glob.glob('data*.csv')
+with open(merged_file, 'w', newline='') as outfile:
+    for csvfilePath in filelist:
+        with open(csvfilePath, 'r', newline='') as infile:
+            indata = infile.read().replace(",", ".")
+            frames.append(pd.read_csv(StringIO(indata), sep = csvDelimiter).astype(dataTypes))
+            firstLine = True
+            lines = indata.splitlines()
+            for row in lines:
+                counter += 1
+                if firstLine and headersWrote:
+                    firstLine = False
+                    print("ignore header " + row)
+                    continue
+                headersWrote = True
+                firstLine = False
+                outfile.write(row + "\n")
+                outfile.flush()
+            print("%s file are merged" % csvfilePath)
+    outfile.flush()
+    print("saved to %s. lines %d" % (merged_file, counter))
+    
+##read merged
+%%time
+temperature_data = pd.read_csv(merged_file, sep = ";")
