@@ -1,0 +1,14 @@
+
+```{r}
+pressure <- read.table(url("https://github.com/UnicornParson/pyTest/raw/master/dataSet/pressure/data/pressure.csv"), header=TRUE, sep=";", dec=".")
+```
+#png("pressure.png",width=1920,height=1280)
+```{r}
+
+plot(pressure$pressure, axes=FALSE, type="l",col="red")
+lines(pressure$temperature, col="green")
+grid(nx=50, ny=50, col="#559999")
+axis(2)
+axis(1, at=pressure$id,labels=pressure$datetime, las=2)
+```
+#dev.off()
