@@ -1,7 +1,22 @@
 
 ```{r}
-pressure <- read.table("data/pressure.csv", header=TRUE, sep=";", dec=".")
+
+temp = list.files(path = "data/",pattern="*.csv")
+l <- c()
+for (i in 1:length(temp)) 
+{
+  path = paste("data/", temp[i], sep = "")
+  part = read.table(path, header=TRUE, sep=",", dec=".")
+  l <- append(l, as.data.frame(part))
+  break
+}
+class(l)
+str(part)
+
+pressure <- lapply(l, as.data.table)
+
 ```
+
 
 show here
 
