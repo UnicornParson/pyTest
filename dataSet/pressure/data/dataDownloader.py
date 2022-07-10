@@ -10,7 +10,7 @@ from pandas.plotting import table
 import requests
 
 PART_SIZE = int(10**6 / 2)
-ENV_URL = "http://192.168.0.6/env.json"
+ENV_URL = "http://192.168.0.18/env.json"
 
 def mprint(msg):
     print(msg)
@@ -20,7 +20,6 @@ async def make_cur():
     resp = requests.get(url=ENV_URL)
     envdata = resp.json()["pressure"]
 
-    print(envdata)
     con = psycopg2.connect(
         database=envdata["database"],
         user=envdata["user"],
