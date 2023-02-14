@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.8
+#!/usr/bin/env python3
 import sys
 if not hasattr(sys, "version_info") or sys.version_info < (3, 5):
     raise SystemExit("This program requires Python 3.5 or later.")
