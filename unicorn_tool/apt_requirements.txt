@@ -1,0 +1,4 @@
+qml-module-qtquick-controls
+universal-ctags
+libxcb-xinerama0
+libxcb-cursor0

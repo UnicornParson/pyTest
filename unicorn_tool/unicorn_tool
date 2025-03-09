@@ -1,0 +1,84 @@
+#!/bin/bash
+
+#!/bin/bash
+
+# Minimum required Python version
+req_major=3
+req_minor=10
+
+# Check for python3 installation
+if ! command -v python3 &> /dev/null; then
+    echo "ERROR: Python 3 is not installed!" >&2
+    exit 1
+fi
+
+# Get Python version
+version=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>&1)
+
+# Check for execution errors
+if [ $? -ne 0 ]; then
+    echo "ERROR: Failed to get Python version" >&2
+    exit 1
+fi
+
+# Parse version components
+IFS='.' read -r major minor <<< "$version"
+
+# Version validation
+if [[ "$major" -lt "$req_major" ]] || 
+   [[ "$major" -eq "$req_major" && "$minor" -lt "$req_minor" ]]; then
+    echo "ERROR: Python $req_major.$req_minor or higher is required, current version: $version" >&2
+    exit 1
+fi
+
+# File containing the list of packages
+REQUIREMENTS_FILE="apt_requirements.txt"
+MISSING_PACKAGES=()
+# Check the presence of each package and install if necessary
+while IFS= read -r package; do
+    [[ -z "$package" || "$package" == \#* ]] && continue
+    echo "try  $package "
+    if ! dpkg -l "$package" &> /dev/null; then
+        MISSING_PACKAGES+=("$package")
+    fi
+done < "$REQUIREMENTS_FILE"
+if [ ${#MISSING_PACKAGES[@]} -gt 0 ]; then
+    echo "apt packages missed:"
+    printf " - %s\n" "${MISSING_PACKAGES[@]}"
+    #exit 1
+    # FIXME
+fi
+
+PKG_NAME="qml-module-qtquick-controls"
+if dpkg-query -W --showformat='${Status}\n' $PKG_NAME | grep "install ok installed"; then
+    echo "$PKG_NAME - ok"
+else
+    echo "ERROR: pkg $PKG_NAME missed in system."
+    exit 1
+fi
+#libxcb-xinerama0 libxcb-cursor0
+# ctags util
+PKG_NAME="universal-ctags"
+if dpkg-query -W --showformat='${Status}\n' $PKG_NAME | grep "install ok installed"; then
+    echo "$PKG_NAME - ok"
+else
+    echo "ERROR: pkg $PKG_NAME missed in system."
+    exit 1
+fi
+
+echo "Python version $version meets the requirements"
+
+# Create a new virtual environment
+python3 -m venv .venv
+
+# Activate the virtual environment
+source .venv/bin/activate
+
+# Install dependencies
+python3 -m pip install -r requirements.txt
+
+# Run the script
+python3 app.py
+
+# Deactivate the virtual environment
+deactivate
