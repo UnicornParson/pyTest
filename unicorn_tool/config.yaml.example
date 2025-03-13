@@ -1,0 +1,8 @@
+project_storage:
+  path: /data/projects
+ollama:
+  use_ollama: False
+  host: 127.0.0.1
+  port: 11435
+  main_model: llama3.2
+  embed_model: nomic-embed-text

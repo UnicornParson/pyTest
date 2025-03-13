@@ -1,0 +1,3 @@
+[submodule "unicorn_tool/qml/UnicornUI"]
+	path = unicorn_tool/qml/UnicornUI
+	url = git@github.com:UnicornParson/UnicornUIPy.git

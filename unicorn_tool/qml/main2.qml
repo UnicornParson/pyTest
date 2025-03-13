@@ -2,7 +2,7 @@ import QtQuick 2.15
 import QtQuick.Window 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-
+import './UnicornUI'
 
 /*
 component LabeledButton: Button {
@@ -38,7 +38,9 @@ component InfoBlock: Pane {
     }
 }
 */
-Window {
+
+//UWindow
+UWindow {
     id: window
     visible: true
     width: 800

@@ -1,0 +1,21 @@
+import QtQuick 2.15
+
+Item {
+    // Main colors for the Dark+ theme
+    property color backgroundColor: "#1E1E1E"           // Workspace background
+    property color sidebarBackgroundColor: "#001F33"   // Sidebar background
+    property color foregroundColor: "#D4D4D4"           // Main text color
+    property color selectionColor: "#D7BA7D"            // Text selection color
+    property color cursorColor: "#AEAFAD"              // Cursor color
+    property color insertCursorColor: "#FFFFFF"        // Cursor color in insert mode
+    property color lineHighlightColor: "#0000FF20"     // Line highlight color
+    property color activeTabColor: "#007ACC"          // Active tab color
+    property color inactiveTabColor: "#757575"        // Inactive tab color
+    property color borderColor: "#454545"              // Border color
+    property color selectedItemBackgroundColor: "#003B71" // Selected item background color
+    property color selectedItemForegroundColor: "#D4D4D4" // Selected item text color
+    property color statusBarBackgroundColor: "#001F33"  // Status bar background color
+    property color statusBarForegroundColor: "#D4D4D4"  // Status bar text color
+    property color titleBarBackgroundColor: "#1E1E1E"   // Title bar background color
+    property color titleBarForegroundColor: "#D4D4D4"   // Title bar text color
+}

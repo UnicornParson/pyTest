@@ -1,7 +1,25 @@
 import sys
-from PyQt6.QtCore import QObject, pyqtSignal, pyqtProperty
-from PyQt6.QtGui import QGuiApplication
-from PyQt6.QtQml import QQmlApplicationEngine
+import os
+from PyQt6.QtCore import *
+from PyQt6.QtGui import *
+from PyQt6.QtQml import *
+from qml.UnicornUI import *
+from internal import *
+
+def load_env():
+    default_path: str = "~/utool_data"
+    GloabalContext.app_base = os.environ.get("UTOOL_BASE_PATH") or default_path
+
+def load_appconfig():
+    if not GloabalContext.app_base:
+        raise ValueError("UTOOL_BASE_PATH not set in environment") 
+    cfg_name = f"{GloabalContext.app_base}/config.yaml"
+    if not os.path.isfile(cfg_name):
+        raise ValueError("Config file not found")  
+    GloabalContext.config = ConfigManager(config_path=cfg_name)
+    GloabalContext.config.load()
+
+
 
 class Backend(QObject):
     textChanged = pyqtSignal(str)
@@ -19,13 +37,29 @@ class Backend(QObject):
         self.textChanged.emit(self._text)
 
 if __name__ == "__main__":
+    load_env()
+    load_appconfig()
     app = QGuiApplication(sys.argv)
+    
     engine = QQmlApplicationEngine()
-    
+    TemplatesTypes.register_types()
     backend = Backend()
-    engine.rootContext().setContextProperty("backend", backend)
+    app_ico = GloabalContext.app_base + "/img/app_ico.png"
+    app.setWindowIcon(QIcon(app_ico))
+    window = WindowInfo(800, 600,"My Window", "Main_Window", app_ico, None )
+    GloabalContext.ui_skin = Skin(engine)
+    GloabalContext.ui_skin.setBackgroundColor = "#333"
+    GloabalContext.ui_globals = UnicornUIGlobal.self()
+    GloabalContext.ui_globals.setPropertyLoggingEnabled = True
+    GloabalContext.ui_globals.setDebugGridEnabled = True
+    GloabalContext.ui_globals.setFpsBoosterEnabled = True
     
-    engine.load("qml/main2.qml")
+    engine.rootContext().setContextProperty("backend", backend)
+    engine.rootContext().setContextProperty("wininfo", window)
+    engine.rootContext().setContextProperty("skin", GloabalContext.ui_skin)
+    engine.rootContext().setContextProperty("globals", GloabalContext.ui_globals)
+    
+    engine.load("qml/main3.qml")
     
     if not engine.rootObjects():
         sys.exit(-1)
