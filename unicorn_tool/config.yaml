@@ -1,8 +1,0 @@
-project_storage:
-  path: /home/ed/ssdrepo/pyTest/unicorn_tool/tmp
-ollama:
-  use_ollama: True
-  host: 192.168.0.18
-  port: 11435
-  main_model: deepseek-r1:32b
-  embed_model: nomic-embed-text
