@@ -1,5 +1,7 @@
 from .project import *
 from .app_config import *
+from .tab_controller import *
+
 
 class GloabalContext:
     app_base: str = ""
@@ -7,5 +9,6 @@ class GloabalContext:
     config: ConfigManager = None
     ui_globals = None
     ui_skin = None
+    tab_controller: TabController = None
 
-__all__ = ["GloabalContext", "Project", "ConfigManager"]
+__all__ = ["GloabalContext", "Project", "ConfigManager", "TabController"]

@@ -102,23 +102,3 @@ class ConfigManager:
 
 class ConfigError(Exception):
     pass
-
-# Пример использования
-if __name__ == "__main__":
-    try:
-        config_manager = ConfigManager("config.yaml")
-        config_manager.load()
-        
-        # Доступ к настройкам
-        print(f"Ollama host: {config_manager.ollama_settings.host}")
-        print(f"Project storage path: {config_manager.storage_settings.path}")
-        
-        # Обновление настроек
-        config_manager.update_ollama(port=11435, main_model="llama3")
-        config_manager.update_project_storage("/new/storage/path")
-        
-        # Сохранение изменений
-        config_manager.save("updated_config.yaml")
-        
-    except ConfigError as e:
-        print(f"Configuration error: {str(e)}")

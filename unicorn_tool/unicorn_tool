@@ -38,7 +38,6 @@ MISSING_PACKAGES=()
 # Check the presence of each package and install if necessary
 while IFS= read -r package; do
     [[ -z "$package" || "$package" == \#* ]] && continue
-    echo "try  $package "
     if ! dpkg -l "$package" &> /dev/null; then
         MISSING_PACKAGES+=("$package")
     fi
