@@ -1,14 +1,24 @@
 import sys
 import os
+import argparse
+from pathlib import Path
+from datetime import datetime
 from PyQt6.QtCore import *
 from PyQt6.QtGui import *
 from PyQt6.QtQml import *
 from qml.UnicornUI import *
 from internal import *
 
+def make_absolute(path) -> str:
+    expanded_path = os.path.expanduser(path)
+    return str(os.path.abspath(expanded_path))
+def generate_projname(src:str) -> str:
+    folder = os.path.basename(src).strip()
+    return f"{folder}_{datetime.now().strftime('%Y.%m.%d.%f')}"
 def load_env():
     default_path: str = "~/utool_data"
     GloabalContext.app_base = os.environ.get("UTOOL_BASE_PATH") or default_path
+    
 
 def load_appconfig():
     if not GloabalContext.app_base:
@@ -18,6 +28,25 @@ def load_appconfig():
         raise ValueError("Config file not found")  
     GloabalContext.config = ConfigManager(config_path=cfg_name)
     GloabalContext.config.load()
+
+def init_project(src_path:str):
+    print(f"init project {src_path}")
+    GloabalContext.current_project = Project()
+    GloabalContext.ui_project_handler = ProjectQObject(GloabalContext.current_project)
+    name = GloabalContext.current_project.project_from_src(src_path)
+    if not name:
+        # create project
+        prjname = generate_projname(src_path)
+        print(f"new project {prjname}")
+        GloabalContext.current_project.make_project(prjname, src_path)
+        return prjname
+    GloabalContext.current_project.load_project(name)
+    return name
+
+
+def restored_exit(code, folder):
+    os.chdir(folder)
+    sys.exit(code)
 
 class Backend(QObject):
     textChanged = pyqtSignal(str)
@@ -37,14 +66,31 @@ class Backend(QObject):
 if __name__ == "__main__":
     load_env()
     load_appconfig()
-    app = QGuiApplication(sys.argv)
+    parser = argparse.ArgumentParser(description='Unicorn Tool')
+    parser.add_argument('source_path', 
+                       type=str, 
+                       default=os.getcwd(),
+                       help='Path to source directory (optional)',
+                       nargs='?')
+    args =  parser.parse_args()
+    current_dir = os.getcwd()
     
+    app = QGuiApplication(sys.argv)
+    project_src = args.source_path.strip().replace('\\', '/')
+    project_src = make_absolute(project_src)
+    print(f"run source {project_src}")
+    started_with_src = bool(project_src)
+    if project_src and not os.path.isdir(project_src):
+        print(f"Source path '{project_src}' not found!")
+        restored_exit(-1, current_dir)
+
+    os.chdir(GloabalContext.app_base)
     engine = QQmlApplicationEngine()
     TemplatesTypes.register_types()
     backend = Backend()
     app_ico = GloabalContext.app_base + "/img/app_ico.png"
     app.setWindowIcon(QIcon(app_ico))
-    window = WindowInfo(800, 600,"My Window", "Main_Window", app_ico, None )
+    window = WindowInfo(800, 600,"Unicorn tool", "Main_Window", app_ico, None )
     GloabalContext.ui_skin = Skin(engine)
     GloabalContext.ui_globals = UnicornUIGlobal.self()
     GloabalContext.ui_globals.setPropertyLoggingEnabled = True
@@ -58,10 +104,14 @@ if __name__ == "__main__":
     engine.rootContext().setContextProperty("skin", GloabalContext.ui_skin)
     engine.rootContext().setContextProperty("globals", GloabalContext.ui_globals)
     engine.rootContext().setContextProperty("tab_controller", GloabalContext.tab_controller)
+    engine.rootContext().setContextProperty("project", GloabalContext.ui_project_handler)
+    
     
     engine.load("qml/main.qml")
-    
     if not engine.rootObjects():
-        sys.exit(-1)
-        
-    sys.exit(app.exec())
+        restored_exit(-1, current_dir)
+    
+    prjname = init_project(project_src)
+    window.name = prjname
+    rc = app.exec()
+    restored_exit(rc, current_dir)

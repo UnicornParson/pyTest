@@ -8,6 +8,17 @@ UWindow
 {
     id: root
     backgroundElement.color: skin.backgroundColor
+
+    UConsole {
+        id: consoleViewer
+        anchors {
+            left: parent.left
+            right: parent.right
+            bottom: parent.bottom
+        }
+        height:parent.height * 0.25
+    }
+
     UPanel {
         id: navPanel
         width: parent.width * 0.25
@@ -16,8 +27,7 @@ UWindow
         anchors {
             left: parent.left
             top: parent.top
-            bottom: parent.bottom
-
+            bottom: consoleViewer.top
         }
         Rectangle {
             color: "#252526"
@@ -90,7 +100,7 @@ UWindow
         anchors {
             left: navPanel.right
             top: parent.top
-            bottom: parent.bottom
+            bottom: consoleViewer.top
             right: parent.right
         }
         Loader {

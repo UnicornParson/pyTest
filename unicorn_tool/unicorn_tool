@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e
 export UTOOL_BASE_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/"
-echo $UTOOL_BASE_PATH
 
 # Minimum required Python version
 req_major=3
@@ -33,7 +32,8 @@ if [[ "$major" -lt "$req_major" ]] ||
 fi
 
 # File containing the list of packages
-REQUIREMENTS_FILE="apt_requirements.txt"
+REQUIREMENTS_FILE=$UTOOL_BASE_PATH"apt_requirements.txt"
+echo try requirements from $REQUIREMENTS_FILE
 MISSING_PACKAGES=()
 # Check the presence of each package and install if necessary
 while IFS= read -r package; do
@@ -76,20 +76,24 @@ $SH_MAKER
 
 
 echo "Python version $version meets the requirements"
-
+#pushd $UTOOL_BASE_PATH
 # Create a new virtual environment
-python3 -m venv .venv
+python3 -m venv $UTOOL_BASE_PATH/.venv
 
 # Activate the virtual environment
-source .venv/bin/activate
+source $UTOOL_BASE_PATH/.venv/bin/activate
 
 # Install dependencies
-python3 -m pip install -r requirements.txt
+python3 -m pip install -r $UTOOL_BASE_PATH/requirements.txt
 echo
 echo === exec ===
 echo
 # Run the script
-python3 app.py
+#shift
+echo run with "$@"
+python3 $UTOOL_BASE_PATH/app.py "$@"
 
 # Deactivate the virtual environment
 deactivate
+
+#popd
