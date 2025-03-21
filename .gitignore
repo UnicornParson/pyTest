@@ -1,3 +1,5 @@
 .ipynb_checkpoints
 *.backup
 /dataSet/pressure/.idea*
+__pycache__/*
+__pycache__

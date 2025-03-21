@@ -1,27 +1,17 @@
 import os
 import json
 import shutil
+from datetime import datetime, timezone
 from PyQt6.QtCore import *
 from dataclasses import *
 from .ctags_wrapper import *
 from .global_context import *
 
-class ProjectQObject(QObject):
-    projectChanged = pyqtSignal()
-    def __init__(self, proj, parent = None):
-            super().__init__(parent)
-            self.project = proj
-            self.project.set_listener(self.on_changed)
-    def on_changed(self):
-        self.projectChanged.emit()
-
-    @pyqtProperty(str, notify=projectChanged)
-    def name(self) -> str:
-        return self.project
 
 class Project:
     _config_fname = "config.json"
     _index_fname = "projects.json"
+    _console_file = "console.log"
 
     def __init__(self):
         self.ctags_wrapper:CTagsWrapper = None
@@ -37,8 +27,20 @@ class Project:
         self.change_listener = None
     def set_listener(self, listener):
         self.change_listener = listener
+
     def name(self) -> str:
         return self.config["name"]
+    def source(self) -> str:
+        return self.config["source"]
+    def last_indexed(self) -> str:
+        if "last_ctag" not in self.config or int(self.config["last_ctag"]) <= 0:
+            return "never"
+        timestamp = float(self.config["last_ctag"])
+        dt_object = datetime.fromtimestamp(timestamp, tz=timezone.utc)
+        formatted_str = dt_object.strftime("%Y-%m-%d %H:%M:%S.%f")
+        return formatted_str
+
+        
     def _on_change(self):
         if self.change_listener:
             self.change_listener()
@@ -50,6 +52,16 @@ class Project:
                   return False
         return True
     
+    def _log_to_console(self, msg):
+        assert GloabalContext.ui_console_controller != None
+        GloabalContext.ui_console_controller.addLine(f"[project] {msg}")
+
+    def _enable_console_logging(self):
+        assert GloabalContext.ui_console_controller != None
+        if not self._check_project_files:
+            raise Exception("Not in project")
+        GloabalContext.ui_console_controller.setFileOutput(f"{self.projects_home}/{Project._console_file}")
+        
     def _load_index(self):
         self.projects_list = {}
         if not os.path.isfile(self.projects_list_path):
@@ -122,6 +134,8 @@ class Project:
         self.projects_list[name] = src
         self._save_index()
         self._on_change()
+        self._enable_console_logging()
+        self._log_to_console(f"new project {name}")
         return self.project_folder
     
     def _check_project_files(self, folder):
@@ -133,8 +147,10 @@ class Project:
         self.project_folder = f"{self.projects_home}/{name}"
         if not self._check_project_files(self.project_folder):
             raise Exception(f"Project in {self.project_folder} doesnt exist or broken.")
+        self._enable_console_logging()
         self.load_config()
         self._on_change()
+        self._log_to_console(f"load project {name} - OK")
 
 
 

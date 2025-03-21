@@ -43,8 +43,8 @@ UWindow
 
             delegate: UTextButton {
                 id: delegateButton
-                height: 50
-                font.pointSize: 20
+                height: 24
+                font.pointSize: 14
                 text: buttonText
                 width: ListView.view.width
                 backgroundColor: "#3c3c3c"

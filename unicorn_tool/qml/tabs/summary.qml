@@ -5,27 +5,43 @@ import '../UnicornUI'
 UTabContent {
     id: root
     anchors.fill: parent
-    ListModel {
-        id: tableModel
-        ListElement { name: "Name"; value: "" }
-        ListElement { name: "Src"; age: "25"; city: "London"; role: "Designer" }
-        ListElement { name: "Bob"; age: "35"; city: "Paris"; role: "Manager" }
-        ListElement { name: "Eve"; age: "28"; city: "Berlin"; role: "Analyst" }
-    }
-
+    
     TableView {
         anchors.fill: parent
+        height: root.height
         columnSpacing: 1
         rowSpacing: 1
         clip: true
 
-        // Модель колонок
-        model: TableModel {
-            TableModelColumn { display: "name" }
-            TableModelColumn { display: "category" }
-            TableModelColumn { display: "price" }
-            TableModelColumn { display: "stock" }
 
-            rows: tableModel.rows
+        model: project.summary_model
+
+        delegate: Rectangle {
+            implicitHeight: 24
+            implicitWidth: parent.width
+            color: "transparent" 
+            ULabel {
+                
+                id: name_label
+                text: model.key
+                textColor: skin.foregroundColor
+                anchors.left: parent.left
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                width: parent.width / 4
+                backgroundColor: "transparent"
+            }
+            ULabel {
+                id: value_label
+                text: model.value
+                textColor: skin.foregroundColor
+                anchors.left: name_label.right
+                anchors.right: parent.right
+                backgroundColor: "transparent"
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom 
+            }
         }
+    }
 }
+

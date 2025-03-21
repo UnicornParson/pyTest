@@ -75,6 +75,7 @@ class TabController(QObject):
     class TabIds:
         Welcome = 1
         NewProject = 2
+        Summary = 3
 
     def __init__(self, parent = None) -> QObject:
         super().__init__(parent)
@@ -88,7 +89,8 @@ class TabController(QObject):
     def make_tabs(self):
         self._tabs = [
             Tab(TabController.TabIds.Welcome, "Welcome", "tabs/welcome.qml"), 
-            Tab(TabController.TabIds.NewProject, "NewProject", "tabs/new_project.qml"), 
+            Tab(TabController.TabIds.NewProject, "NewProject", "tabs/new_project.qml"),
+            Tab(TabController.TabIds.Summary, "Project", "tabs/summary.qml"),
         ]
         for tab in self._tabs:
             tab.add_to_model(self.model)

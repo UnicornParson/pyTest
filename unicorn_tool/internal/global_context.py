@@ -9,12 +9,14 @@ class GloabalContext:
     ui_globals = None
     ui_skin = None
     ui_project_handler = None
+    ui_console_controller = None
     tab_controller: TabController = None
 
     @staticmethod
     def valid() -> bool:
-        return bool(GloabalContext.app_base 
-                    and GloabalContext.config 
-                    and GloabalContext.ui_globals 
-                    and GloabalContext.ui_skin 
+        return bool(GloabalContext.app_base
+                    and GloabalContext.config
+                    and GloabalContext.ui_globals
+                    and GloabalContext.ui_skin
+                    and GloabalContext.ui_console_controller
                     and GloabalContext.tab_controller)

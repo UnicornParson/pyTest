@@ -32,7 +32,6 @@ def load_appconfig():
 def init_project(src_path:str):
     print(f"init project {src_path}")
     GloabalContext.current_project = Project()
-    GloabalContext.ui_project_handler = ProjectQObject(GloabalContext.current_project)
     name = GloabalContext.current_project.project_from_src(src_path)
     if not name:
         # create project
@@ -41,6 +40,7 @@ def init_project(src_path:str):
         GloabalContext.current_project.make_project(prjname, src_path)
         return prjname
     GloabalContext.current_project.load_project(name)
+    GloabalContext.ui_project_handler = ProjectQObject(GloabalContext.current_project)
     return name
 
 
@@ -91,12 +91,13 @@ if __name__ == "__main__":
     app_ico = GloabalContext.app_base + "/img/app_ico.png"
     app.setWindowIcon(QIcon(app_ico))
     window = WindowInfo(800, 600,"Unicorn tool", "Main_Window", app_ico, None )
+    
     GloabalContext.ui_skin = Skin(engine)
     GloabalContext.ui_globals = UnicornUIGlobal.self()
     GloabalContext.ui_globals.setPropertyLoggingEnabled = True
     GloabalContext.ui_globals.setDebugGridEnabled = True
     GloabalContext.ui_globals.setFpsBoosterEnabled = True
-    
+    GloabalContext.ui_console_controller = ConsoleController()
     GloabalContext.tab_controller = TabController() 
 
     engine.rootContext().setContextProperty("backend", backend)
@@ -104,14 +105,15 @@ if __name__ == "__main__":
     engine.rootContext().setContextProperty("skin", GloabalContext.ui_skin)
     engine.rootContext().setContextProperty("globals", GloabalContext.ui_globals)
     engine.rootContext().setContextProperty("tab_controller", GloabalContext.tab_controller)
-    engine.rootContext().setContextProperty("project", GloabalContext.ui_project_handler)
     
+    engine.rootContext().setContextProperty("console_controller", GloabalContext.ui_console_controller)
     
     engine.load("qml/main.qml")
     if not engine.rootObjects():
         restored_exit(-1, current_dir)
     
     prjname = init_project(project_src)
+    engine.rootContext().setContextProperty("project", GloabalContext.ui_project_handler)
     window.name = prjname
     rc = app.exec()
     restored_exit(rc, current_dir)
