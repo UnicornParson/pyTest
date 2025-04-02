@@ -14,18 +14,24 @@ class OllamaConfig:
 @dataclass
 class ProjectStorageConfig:
     path: str
-
+@dataclass
+class SystemConfig:
+    ctags_bin: str
 @dataclass
 class AppConfig:
     ollama: OllamaConfig
     project_storage: ProjectStorageConfig
+    system: SystemConfig
+
+
+
 
 class ConfigManager:
 
     def __init__(self, config_path: str = "config.yaml"):
         self.config_path = Path(config_path)
         self.config: Optional[AppConfig] = None
-        self._required_sections = ['ollama', 'project_storage']
+        self._required_sections = ['ollama', 'project_storage', 'system']
     
     def load(self) -> None:
 
@@ -35,7 +41,8 @@ class ConfigManager:
                 self._validate(raw_data)
                 self.config = AppConfig(
                     ollama=OllamaConfig(**raw_data['ollama']),
-                    project_storage=ProjectStorageConfig(**raw_data['project_storage'])
+                    project_storage=ProjectStorageConfig(**raw_data['project_storage']),
+                    system=SystemConfig(**raw_data['system'])
                 )
         except FileNotFoundError:
             raise ConfigError(f"Config file {self.config_path} not found")
@@ -66,7 +73,11 @@ class ConfigManager:
                 setattr(self.config.ollama, key, value)
             else:
                 raise AttributeError(f"OllamaConfig has no attribute '{key}'")
-    
+    def update_system(self, path: str) -> None:
+        if not self.config:
+            raise ConfigError("Config not loaded")
+        self.config.system.ctags_bin = path
+
     def update_project_storage(self, path: str) -> None:
         if not self.config:
             raise ConfigError("Config not loaded")
@@ -85,7 +96,8 @@ class ConfigManager:
     def _to_dict(self) -> Dict:
         return {
             'ollama': asdict(self.config.ollama),
-            'project_storage': asdict(self.config.project_storage)
+            'project_storage': asdict(self.config.project_storage),
+            'system': asdict(self.config.system)
         }
     
     @property
@@ -99,6 +111,12 @@ class ConfigManager:
         if not self.config:
             raise ConfigError("Config not loaded")
         return self.config.project_storage
+    
+    @property
+    def system_settings(self) -> SystemConfig:
+        if not self.config:
+            raise ConfigError("Config not loaded")
+        return self.config.system
 
 class ConfigError(Exception):
     pass

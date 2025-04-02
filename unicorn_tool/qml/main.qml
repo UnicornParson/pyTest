@@ -47,7 +47,7 @@ UWindow
                 font.pointSize: 14
                 text: buttonText
                 width: ListView.view.width
-                backgroundColor: "#3c3c3c"
+                backgroundColor: "#5f5e5e"
                 borderSize : 0
                 borderRadius : 6
                 margin: 3

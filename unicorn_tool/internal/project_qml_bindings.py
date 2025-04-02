@@ -1,5 +1,6 @@
 from PyQt6.QtCore import *
 from .project import *
+from .ctags_wrapper import CTagsWrapperSignalHandler
 
 class ProjectSummaryModel(QAbstractListModel):
     KeyRole = Qt.ItemDataRole.UserRole + 1
@@ -61,12 +62,20 @@ class ProjectQObject(QObject):
         self.s_model.add_row("Source", self.source_getter)
         self.s_model.add_row("Indexed", self.last_indexed_getter)
 
+    @pyqtProperty(int, notify=projectChanged)
+    def summary_row_count(self):
+        return self.s_model.rowCount()
+
     def name_getter(self):
         return self.name()
     def source_getter(self):
         return self.source()
     def last_indexed_getter(self):
         return self.last_indexed()
+
+    @pyqtSlot()
+    def runReindex(self) -> None:
+        self.project.reindex()
 
     
     def on_changed(self):
@@ -85,3 +94,16 @@ class ProjectQObject(QObject):
     @pyqtProperty(ProjectSummaryModel, notify=projectChanged)
     def summary_model(self) -> ProjectSummaryModel:
         return self.s_model
+    
+    @pyqtProperty(CTagsWrapperSignalHandler, notify=projectChanged)
+    def ctags(self) -> CTagsWrapperSignalHandler:
+        print("ask ctags. ",self.project.ctagsHandler)
+        return self.project.ctagsHandler
+    
+
+    @pyqtProperty(int, notify=projectChanged)
+    def ctags_stage(self) -> int:
+        if self.project.ctagsHandler():
+            return self.project.ctagsHandler().ctags_stage
+        return CTagsWrapperStage.NotSet.value
+    

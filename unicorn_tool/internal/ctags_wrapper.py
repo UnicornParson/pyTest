@@ -2,15 +2,69 @@ import subprocess
 import os
 import json
 import sqlite3
+from tqdm import tqdm
+from time import time
 from pathlib import Path
 from typing import List, Dict, Optional, Union
+from PyQt6.QtCore import *
+from enum import Enum
+from .global_context import *
+from .utils import Utils
+
+class CTagsWrapperStage(Enum):
+    NotSet = -1
+    Idle = 0
+    Failed = 1
+    Starting = 2
+    CtagsActive = 3
+    ConvertationToDb = 4
+    Done = 10
+
+    def __gt__(self, other):
+        if isinstance(other, self.__class__):
+            return self.value > other.value
+        return NotImplemented
+    def __lt__(self, other):
+        if isinstance(other, self.__class__):
+            return self.value > other.value
+        return NotImplemented
+
+class CTagsWrapperSignalHandler(QObject):
+    activityChanged = pyqtSignal(bool)
+    stageChanged = pyqtSignal(bool)
+    
+    def __init__(self, parent = None):
+        super().__init__(parent)
+        self._ctags_active = False
+        self._ctags_stage = 0
+    
+    @pyqtProperty(int, notify=stageChanged)
+    def ctags_stage(self):
+        return self._ctags_stage
+
+    @ctags_stage.setter
+    def ctags_stage(self, value):
+        if self.ctags_active != value:
+            self.ctags_active = value
+            self.stageChanged.emit(value)
+
+
+    @pyqtProperty(int, notify=activityChanged)
+    def ctags_active(self):
+        return self._ctags_active
+    @ctags_active.setter
+    def ctags_active(self, value):
+        if self._ctags_active != value:
+            self._ctags_active = value
+            self.activityChanged.emit(value)
 
 class CTagsWrapper:
     tags_db = "tags.db"
     tags_plain = "tags.txt"
 
     def __init__(self, project_folder:str, source_target:str):
-        self.ctags_path = "ctags"
+        self.log = None
+        self.ctags_path = GloabalContext.config.system_settings.ctags_bin
         self.project_folder = project_folder   
         self.source_target = source_target
         if not os.path.isdir(self.project_folder):
@@ -26,6 +80,24 @@ class CTagsWrapper:
         self.conn = None
         self.cursor = None
         self.cursor_counter = 0
+        self.handler = CTagsWrapperSignalHandler()
+        self.stage = CTagsWrapperStage.Idle
+
+        self._reindex_listener = None
+        
+
+    def print(self, msg):
+        if self.log:
+            self.log(msg)
+
+    def _set_stage(self, value:CTagsWrapperStage):
+        self.stage = value
+        i = value.value
+        self.handler.ctags_stage = i
+        self.handler.ctags_active = (1 if (value in [
+                                CTagsWrapperStage.CtagsActive,
+                                CTagsWrapperStage.Starting,
+                                CTagsWrapperStage.ConvertationToDb]) else 0)
 
 
     def _get_cur(self):
@@ -67,6 +139,7 @@ class CTagsWrapper:
         return os.path.isfile(self.db_path)
     
     def _check_ctags_available(self):
+        self.print(f"start ctag")
         try:
             subprocess.run(
                 [self.ctags_path, "--version"],
@@ -76,21 +149,42 @@ class CTagsWrapper:
             )
         except (subprocess.CalledProcessError, FileNotFoundError):
             raise RuntimeError(f"ctags not found at '{self.ctags_path}'. Install with 'sudo apt install universal-ctags'")
-
-    def generate_tags(self):
-        cmd = f"{self.ctags_path} -R -f {self.plain_output_path} {self.source_target}"
-        try:
-            subprocess.run(cmd, check=True)
-            print(f"Tags generated successfully: {Path(self.plain_output_path).resolve()}")
-        except subprocess.CalledProcessError as e:
-            raise RuntimeError(f"ctags failed with error: {e}")
-        
-        # check results
+    
+    def on_ctags_done(self, return_code, stdout, stderr):
+        self.print(f"ctags done rc:{return_code}")
+        self.print(f"ctags stderr:{stderr}")
+        if return_code:
+            self._set_stage(CTagsWrapperStage.Failed)
+            return
         if not os.path.isfile(self.plain_output_path):
+            self._set_stage(CTagsWrapperStage.Failed)
+            self.print(f"ctags did not generate any tags in {Path(self.plain_output_path).resolve()}")
+            if self._reindex_listener:
+                self._reindex_listener(False)
             raise RuntimeError("ctags did not generate any tags")
         
-        print("convert tags")
+        self.print(f"Tags generated successfully: {Path(self.plain_output_path).resolve()}")
+        ts = time()
+        self.print("convert tags")
+        self._set_stage(CTagsWrapperStage.CtagsActive)
+
         self.convert_report(self.plain_output_path)
+        te = time()
+        self.print(f"tags converted took {float(te-ts):0.4f}")
+        self.handler.ctags_active = False
+
+        if self._reindex_listener:
+            self._reindex_listener(True)
+
+    def generate_tags(self, listener = None):
+        self._set_stage(CTagsWrapperStage.Starting)
+        self._reindex_listener = listener
+        try:
+            self._set_stage(CTagsWrapperStage.CtagsActive)
+            Utils.run_command_async([self.ctags_path, "--output-encoding=utf-8", "-R", "-f", self.plain_output_path, self.source_target],
+                                    self.on_ctags_done)
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(f"ctags failed with error: {e}")
 
     def _parse_ctags_line(self, line):
         line = line.strip()
@@ -136,9 +230,21 @@ class CTagsWrapper:
         if self.has_tag_data():
             cur.execute('DELETE FROM tags')
 
-        with open(self.plain_output_path, 'r') as f:
-            for line in f:
-                fields = self._parse_ctags_line(line)
+        with open(self.plain_output_path, 'rb') as f:
+            total_lines = Utils.lines_in(self.plain_output_path)
+            lnum = 0
+            for line_bytes in tqdm(f, total=total_lines, desc="Loading tags"):
+                lnum += 1
+                try:
+                    line_str = line_bytes.decode('utf-8', errors='replace').strip()
+                    #line_str = line.decode('utf-8')
+                    fields = self._parse_ctags_line(line_str)
+
+                except UnicodeDecodeError:
+                    # Skip the problematic line and continue with the next one
+                    self.print(f"Skipping line due to UnicodeDecodeError l {lnum}")
+                    continue
+
                 if not fields:
                     continue
                 
@@ -164,5 +270,7 @@ class CTagsWrapper:
                     '_type': fields.get('_type')
                 })
         self._cur_commit()
+        self.print(f"found {lnum} records")
+        self.print("optimize tags db")
         cur.execute('VACUUM')
         self._put_cur()

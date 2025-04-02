@@ -15,6 +15,7 @@ class Project:
 
     def __init__(self):
         self.ctags_wrapper:CTagsWrapper = None
+
         assert GloabalContext.valid() , "Global Context not validated."
         self.project_folder = None
         self.projects_home = GloabalContext.config.storage_settings.path
@@ -25,8 +26,26 @@ class Project:
         assert bool(self.projects_home)
         self._load_index()
         self.change_listener = None
+
+    def ctagsHandler(self):
+        if self.in_project() and self.ctags_wrapper:
+            return self.ctags_wrapper.handler
+        return None
+    def log_handler(self, msg):
+        self._log_to_console(msg)
+
+    def in_project(self):
+        return bool(self.project_folder) and bool(self.name()) and bool(self.source())
     def set_listener(self, listener):
         self.change_listener = listener
+
+    def on_reindex_done(self, ok:bool):
+        if not ok:
+            # no need to log. reason already logged
+            return
+        self._log_to_console(f"reindex done")
+        self.update_last_indexed()
+
 
     def name(self) -> str:
         return self.config["name"]
@@ -40,7 +59,11 @@ class Project:
         formatted_str = dt_object.strftime("%Y-%m-%d %H:%M:%S.%f")
         return formatted_str
 
-        
+    def update_last_indexed(self):
+        self.config["last_ctag"] = float(datetime.now().timestamp())
+        self.save_config()
+        self._on_change()
+
     def _on_change(self):
         if self.change_listener:
             self.change_listener()
@@ -107,11 +130,27 @@ class Project:
         if not self._is_config_valid(self.config):
             raise ValueError('Invalid project configuration')    
         with open(f"{self.project_folder}/{Project._config_fname}", 'w') as f:   
-             json.dump(self.config, f) 
+             json.dump(self.config, f, indent=4, ensure_ascii=False) 
 
 
+    def reindex(self):
+        self.init_ctags()
+        if self.ctags_wrapper.stage > CTagsWrapperStage.Idle:
+            self._log_to_console(f"ctag busy. state:{self.ctags_wrapper.stage.name}")
+            return
+        try:
+            self.ctags_wrapper.generate_tags(self.on_reindex_done)
+        except Exception as e:
+            self._log_to_console(f"reindex failed reason: {e}")
+        self._on_change()
 
-
+    def init_ctags(self):
+        if not self.in_project():
+            raise Exception("project not loaded")
+        if not self.ctags_wrapper:
+            self.ctags_wrapper = CTagsWrapper(self.project_folder, self.source())
+            self.ctags_wrapper.log = self.log_handler
+            self._log_to_console(f"init ctag - OK")
 
 
     def make_project(self, name, src) -> str:
@@ -136,6 +175,7 @@ class Project:
         self._on_change()
         self._enable_console_logging()
         self._log_to_console(f"new project {name}")
+        self.init_ctags()
         return self.project_folder
     
     def _check_project_files(self, folder):
@@ -150,6 +190,7 @@ class Project:
         self._enable_console_logging()
         self.load_config()
         self._on_change()
+        self.init_ctags()
         self._log_to_console(f"load project {name} - OK")
 
 
