@@ -11,6 +11,7 @@ class GloabalContext:
     ui_project_handler = None
     ui_console_controller = None
     tab_controller: TabController = None
+    project_config: None
 
     @staticmethod
     def valid() -> bool:

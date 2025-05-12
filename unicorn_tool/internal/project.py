@@ -20,7 +20,7 @@ class Project:
         self.project_folder = None
         self.projects_home = GloabalContext.config.storage_settings.path
         print(f"use project base {self.projects_home}")
-        self.config = {}
+        GloabalContext.project_config = {}
         self.projects_list = {}
         self.projects_list_path = f"{self.projects_home}/{Project._index_fname}"
         assert bool(self.projects_home)
@@ -48,19 +48,24 @@ class Project:
 
 
     def name(self) -> str:
-        return self.config["name"]
+        return GloabalContext.project_config["name"]
     def source(self) -> str:
-        return self.config["source"]
+        return GloabalContext.project_config["source"]
+    def codefile_template(self) -> str:
+        return GloabalContext.project_config["template"]
+    def lang(self) -> str:
+        return GloabalContext.project_config["lang"]
+    
     def last_indexed(self) -> str:
-        if "last_ctag" not in self.config or int(self.config["last_ctag"]) <= 0:
+        if "last_ctag" not in GloabalContext.project_config or int(GloabalContext.project_config["last_ctag"]) <= 0:
             return "never"
-        timestamp = float(self.config["last_ctag"])
+        timestamp = float(GloabalContext.project_config["last_ctag"])
         dt_object = datetime.fromtimestamp(timestamp, tz=timezone.utc)
         formatted_str = dt_object.strftime("%Y-%m-%d %H:%M:%S.%f")
         return formatted_str
 
     def update_last_indexed(self):
-        self.config["last_ctag"] = float(datetime.now().timestamp())
+        GloabalContext.project_config["last_ctag"] = float(datetime.now().timestamp())
         self.save_config()
         self._on_change()
 
@@ -120,17 +125,17 @@ class Project:
         with open(f"{self.project_folder}/{Project._config_fname}", 'r') as file:
             new_config = json.load(file)
             if self._is_config_valid(new_config):
-                self.config = new_config
+                GloabalContext.project_config = new_config
             else:
                 raise ValueError('Invalid project configuration')    
             
     def save_config(self)-> None:
         if not self._check_project_files(self.project_folder):
             raise ValueError('No project configuration file found')
-        if not self._is_config_valid(self.config):
+        if not self._is_config_valid(GloabalContext.project_config):
             raise ValueError('Invalid project configuration')    
         with open(f"{self.project_folder}/{Project._config_fname}", 'w') as f:   
-             json.dump(self.config, f, indent=4, ensure_ascii=False) 
+             json.dump(GloabalContext.project_config, f, indent=4, ensure_ascii=False) 
 
 
     def reindex(self):
@@ -166,9 +171,9 @@ class Project:
         shutil.copytree(initial_data, self.project_folder, dirs_exist_ok=True)
         if not self._check_project_files(self.project_folder):
             raise Exception(f"Project in {self.project_folder} doesnt exist or broken.")
-        self.config["source"] = src
-        self.config["last_ctag"] = 0
-        self.config["name"] = name
+        GloabalContext.project_config["source"] = src
+        GloabalContext.project_config["last_ctag"] = 0
+        GloabalContext.project_config["name"] = name
         self.save_config()
         self.projects_list[name] = src
         self._save_index()

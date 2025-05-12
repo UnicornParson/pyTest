@@ -2,9 +2,44 @@ import subprocess
 import threading
 import shlex
 import hashlib
+from pathlib import Path
 from time import time
+import re
+
+class FileFilter:
+    templates = {
+        "cpp": r'\.(c|cpp|cc|cxx|h|hpp|hh|hxx|in|inl|inc)$'
+    }
+
+    @staticmethod
+    def has_template(template)-> bool:
+        t = template.lower().strip()
+        return (t in FileFilter.templates)
+    @staticmethod
+    def match(template, fname)-> bool:
+        t = template.lower().strip()
+        if t not in FileFilter.templates:
+            raise IndexError("Invalid template type")
+
+        return re.search(FileFilter.templates[t],fname,re.IGNORECASE) is not None
 
 class Utils:
+    @staticmethod
+    def remove_base_path(absolute_path: str, base_path: str) -> str:
+        """
+        Removes the base path from an absolute path using pathlib.
+        Returns the relative path if the base is valid; otherwise, returns the original path.
+        """
+        abs_path = Path(absolute_path).absolute()
+        base = Path(base_path).absolute()
+        
+        try:
+            relative = abs_path.relative_to(base)
+            return str(relative)
+        except ValueError:
+            # Base is not a prefix of the absolute path
+            return str(abs_path)
+
     @staticmethod
     def run_command_async(command, callback):
         """
@@ -25,7 +60,7 @@ class Utils:
             )
             stdout, stderr = process.communicate()
             te = time()
-            print(f"[{h}] - done. took {float(te-ts):0.4f}")
+            print(f"[{h}] - done. took {float(te-ts):0.4f}s")
             callback(process.returncode, stdout.decode(), stderr.decode())
         
         thread = threading.Thread(target=_run)

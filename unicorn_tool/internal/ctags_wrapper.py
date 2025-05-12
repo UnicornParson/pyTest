@@ -9,7 +9,7 @@ from typing import List, Dict, Optional, Union
 from PyQt6.QtCore import *
 from enum import Enum
 from .global_context import *
-from .utils import Utils
+from .utils import Utils, FileFilter
 
 class CTagsWrapperStage(Enum):
     NotSet = -1
@@ -61,7 +61,8 @@ class CTagsWrapperSignalHandler(QObject):
 class CTagsWrapper:
     tags_db = "tags.db"
     tags_plain = "tags.txt"
-
+    __lang_args = {"cpp": "C,C++"}
+    
     def __init__(self, project_folder:str, source_target:str):
         self.log = None
         self.ctags_path = GloabalContext.config.system_settings.ctags_bin
@@ -135,6 +136,19 @@ class CTagsWrapper:
         self._put_cur()
         return int(row[0])
 
+    def types_stats(self, filter:list = []) -> dict:
+        cur = self._get_cur()
+        cur.execute(''' SELECT kind, COUNT(*) AS count FROM tags GROUP BY kind ORDER BY count DESC;''')
+        types = {}
+        for row in cur.fetchall():
+            kind = row[0].strip()
+            count = int(row[1].strip())
+            if filter and kind not in filter:
+                continue
+            types[kind] = count
+        return types
+
+
     def _has_tag_db(self):
         return os.path.isfile(self.db_path)
     
@@ -170,7 +184,7 @@ class CTagsWrapper:
 
         self.convert_report(self.plain_output_path)
         te = time()
-        self.print(f"tags converted took {float(te-ts):0.4f}")
+        self.print(f"tags converted took {float(te-ts):0.4f}s")
         self.handler.ctags_active = False
 
         if self._reindex_listener:
@@ -179,10 +193,15 @@ class CTagsWrapper:
     def generate_tags(self, listener = None):
         self._set_stage(CTagsWrapperStage.Starting)
         self._reindex_listener = listener
+        args = [self.ctags_path,"--output-encoding=utf-8","-R","--fields=+all","--fields=+n", "--fields=+K"]
+        if "lang" in GloabalContext.project_config and GloabalContext.project_config["lang"] in CTagsWrapper.__lang_args:
+            lang = GloabalContext.project_config["lang"]
+            args.append(f"--languages={CTagsWrapper.__lang_args[lang]}")
+        args += ["-f", self.plain_output_path, self.source_target]
+
         try:
             self._set_stage(CTagsWrapperStage.CtagsActive)
-            Utils.run_command_async([self.ctags_path, "--output-encoding=utf-8", "-R", "-f", self.plain_output_path, self.source_target],
-                                    self.on_ctags_done)
+            Utils.run_command_async(args, self.on_ctags_done)
         except subprocess.CalledProcessError as e:
             raise RuntimeError(f"ctags failed with error: {e}")
 
@@ -196,10 +215,18 @@ class CTagsWrapper:
             return None
         
         name, path, pattern = parts[0], parts[1], parts[2].rstrip(';"')
+        path = Utils.remove_base_path(path, self.source_target)
+        # filter files
+        if "template" in GloabalContext.project_config and FileFilter.has_template(GloabalContext.project_config["template"]):
+            tpl = GloabalContext.project_config["template"]
+            if not FileFilter.match(tpl, path):
+                print(f"skip {path}")
+                return None
+
         fields = {
-            'name': name,
-            'path': path,
-            'pattern': pattern,
+            'name': name.strip(),
+            'path': path ,
+            'pattern': pattern.strip(),
             'line': None,
             'typeref': None,
             'roles': None,
@@ -207,17 +234,32 @@ class CTagsWrapper:
             '_type': None
         }
         
+        # Process additional fields when available (kind, language, scope, etc.)
         if len(parts) > 3:
-            for field in parts[3].split('\t'):
-                if ':' in field:
-                    key, value = field.split(':', 1)
+            rest_parts = parts[3].split('\t')
+            if rest_parts:
+                # The first part after the pattern is the tag kind (e.g., 'f', 'c')
+                fields['kind'] = rest_parts[0].strip()
+
+                # Parse key-value fields (e.g., 'language:C++', 'class:MyClass')
+                for field in rest_parts[1:]:
+                    if ':' in field:
+                        key, value = field.split(':', 1)
+                    else:
+                        # Handle fields without values (e.g., 'file:')
+                        key, value = field, ''
+
                     key = key.strip().lower()
-                    fields[key] = value.strip()
-        if 'line' in fields:
+                    value = value.strip()
+                    fields[key] = value or None  # Store empty values as None
+
+        # Convert line number to integer (if present)
+        if 'line' in fields and fields['line'] is not None:
             try:
                 fields['line'] = int(fields['line'])
             except (ValueError, TypeError):
-                fields['line'] = None
+                fields['line'] = None  # Invalid line numbers are ignored
+
         return fields
 
     def has_tag_data(self):
@@ -247,7 +289,14 @@ class CTagsWrapper:
 
                 if not fields:
                     continue
+                unused = fields.copy()
+                for key in ['name','path','kind','line','language', 'scope', 'pattern','typeref', 'roles','extras','_type']:
+                    if key in unused:
+                        del unused[key]
+                if unused:
+                    fields['extras'] = json.dumps(unused)
                 
+
                 cur.execute('''
                     INSERT INTO tags (
                         name, path, kind, line, language,

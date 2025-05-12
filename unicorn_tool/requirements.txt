@@ -2,3 +2,5 @@ pyqt6
 PyQt6-sip
 pyyaml
 tqdm
+clang
+pycparser
