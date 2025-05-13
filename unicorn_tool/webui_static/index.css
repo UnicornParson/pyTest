@@ -1,0 +1,147 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #252526;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.logo {
+    font-size: 1.5em;
+    margin-bottom: 20px;
+    color: #5c6370;
+}
+
+.menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.menu li {
+    margin-bottom: 10px;
+}
+
+.menu li a {
+    color: #d4d4d4;
+    text-decoration: none;
+}
+
+.menu li a:hover {
+    color: #ffffff;
+}
+
+.editor {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: #1e1e1e;
+    overflow: auto;
+}
+
+.tabs {
+    display: flex;
+    background-color: #252526;
+    padding: 10px;
+}
+
+.tab {
+    padding: 5px 15px;
+    background-color: #1e1e1e;
+    margin-right: 5px;
+    border: 1px solid #5c6370;
+    border-radius: 4px 4px 0 0;
+}
+
+.code {
+    flex: 1;
+    padding: 20px;
+    overflow: auto;
+}
+
+pre {
+    margin: 0;
+    font-family: 'Consolas', monospace;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+code.language-html {
+    color: #d4d4d4;
+}
+
+.terminal-container {
+    height: 30%;
+    min-height: 100px;
+    background-color: #252526;
+    border-top: 1px solid #5c6370;
+    position: relative;
+}
+
+.terminal-resizer {
+    height: 5px;
+    background-color: #5c6370;
+    cursor: ns-resize;
+}
+
+.terminal {
+    height: calc(100% - 5px);
+    overflow: auto;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.terminal-header {
+    padding: 5px;
+    background-color: #3c3c3c;
+    border-bottom: 1px solid #5c6370;
+    margin-bottom: 10px;
+}
+
+.terminal-content {
+    font-family: 'Consolas', monospace;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.terminal-content .command {
+    color: #4fc3f7;
+}
+
+::-webkit-scrollbar {
+    width: 3px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1e1e1e
+}
+
+::-webkit-scrollbar-thumb {
+    background: #5c6370;
+    border-radius: 1px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #7a828e;
+}
+
+::-webkit-scrollbar-thumb:active {
+    background: #a3a9b3;
+    width: 8px;
+}

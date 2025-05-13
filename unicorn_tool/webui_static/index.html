@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unicorn Tool</title>
+    <link rel="stylesheet" href="index.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/vite@2.4.5/dist/node_modules/@vue/compiler-sfc/bundled.min.js"></script>
+</head>
+<body>
+    <div id="app" class="container">
+        <div class="sidebar">
+            <div class="logo">{{ logo }}</div>
+            <ul class="menu">
+                <li><a href="#">Explorer</a></li>
+                <li><a href="#">Search</a></li>
+                <li><a href="#">Source Control</a></li>
+                <li><a href="#">Run and Debug</a></li>
+                <li><a href="#">Extensions</a></li>
+            </ul>
+        </div>
+        <div class="editor">
+            <div class="tabs">
+                <div class="tab">index.html</div>
+                <div class="tab">styles.css</div>
+            </div>
+            <div class="code">
+                <pre>
+                    <code class="language-html">
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;Dark+ Theme&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;Hello, World!&lt;/h1&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+                    </code>
+                </pre>
+            </div>
+        </div>
+    </div>
+    <div class="terminal-container" >
+        <div class="terminal-resizer" @mousedown="startResize"></div>
+        <div class="terminal">
+            <div class="terminal-header">Terminal</div>
+            <div class="terminal-content">
+                <pre>
+$ <span class="command">ls</span>
+file1.txt  file2.txt  folder1
+$ _
+в
+в
+в
+в
+в
+в
+в
+в
+в
+
+в
+в
+                </pre>
+            </div>
+        </div>
+    </div>
+    <script src="index.js"></script>
+</body>
+</html>
