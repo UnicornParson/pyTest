@@ -89,7 +89,7 @@ echo
 echo === exec ===
 echo
 # Run the script
-#shift
+shift
 echo run with "$@"
 export UTOOL_HOST="0.0.0.0"
 export UTOOL_PORT=5050

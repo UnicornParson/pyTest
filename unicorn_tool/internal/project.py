@@ -27,6 +27,29 @@ class Project:
         self._load_index()
         self.change_listener = None
 
+    def to_dict(self) -> dict:
+        return {
+            "project_name": self.name(),
+            "source": self.source(),
+            "codefile_template": self.codefile_template(),
+            "lang": self.lang(),
+            "last_indexed": self.last_indexed(),
+            "project_folder": self.project_folder,
+            "ctags_state": self.ctags_wrapper.state_str() if self.ctags_wrapper else "no_ctags"
+        }
+    
+    @staticmethod
+    def to_dict_placeholder() -> dict:
+        return {
+            "project_name": "NO_PROJECT",
+            "source": "",
+            "codefile_template": "",
+            "lang": "",
+            "last_indexed": "",
+            "project_folder": "",
+            "ctags_state": ""
+        }
+
     def ctagsHandler(self):
         if self.in_project() and self.ctags_wrapper:
             return self.ctags_wrapper.handler
@@ -48,13 +71,16 @@ class Project:
 
 
     def name(self) -> str:
-        return GloabalContext.project_config["name"]
+        return GloabalContext.project_config["name"] if "name" in GloabalContext.project_config else ""
+    
     def source(self) -> str:
-        return GloabalContext.project_config["source"]
+        return GloabalContext.project_config["source"] if "source" in GloabalContext.project_config else ""
+    
     def codefile_template(self) -> str:
-        return GloabalContext.project_config["template"]
+        return GloabalContext.project_config["template"] if "template" in GloabalContext.project_config else ""
+    
     def lang(self) -> str:
-        return GloabalContext.project_config["lang"]
+        return GloabalContext.project_config["lang"] if "lang" in GloabalContext.project_config else ""
     
     def last_indexed(self) -> str:
         if "last_ctag" not in GloabalContext.project_config or int(GloabalContext.project_config["last_ctag"]) <= 0:
@@ -108,7 +134,6 @@ class Project:
             return None
         i = list(self.projects_list.values()).index(s)
         keys = list(self.projects_list.keys())[i]
-        print(f"@@ keys {keys} t: {type(keys)}")
         if not keys:
             return None
         if isinstance(keys, str):
@@ -138,16 +163,18 @@ class Project:
              json.dump(GloabalContext.project_config, f, indent=4, ensure_ascii=False) 
 
 
-    def reindex(self):
+    def reindex(self) -> bool:
         self.init_ctags()
         if self.ctags_wrapper.stage > CTagsWrapperStage.Idle:
             self._log_to_console(f"ctag busy. state:{self.ctags_wrapper.stage.name}")
-            return
+            return False
         try:
             self.ctags_wrapper.generate_tags(self.on_reindex_done)
         except Exception as e:
             self._log_to_console(f"reindex failed reason: {e}")
+            return False
         self._on_change()
+        return True
 
     def init_ctags(self):
         if not self.in_project():

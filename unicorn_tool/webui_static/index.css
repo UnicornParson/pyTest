@@ -9,6 +9,14 @@ body {
     height: 100vh;
 }
 
+[v-cloak] {
+    display: none;
+}
+
+.tab_content {
+    display: none;
+}
+
 .container {
     display: flex;
     flex: 1;
@@ -144,4 +152,64 @@ code.language-html {
 ::-webkit-scrollbar-thumb:active {
     background: #a3a9b3;
     width: 8px;
+}
+
+.terminalContent {
+    font-family: "Cutive Mono", 'Consolas', 'Menlo', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.4em;
+    font-style: normal;
+    white-space: pre-wrap;
+    overflow-x: auto;
+    padding: 8px;
+}
+
+.terminalContent::selection {
+
+    border-radius: 3px;
+    background-color: #a3a9b3;
+    color: #000000;
+}
+
+.terminalContent a {
+    color: #8b33ff;
+    text-decoration: underline;
+}
+
+.btn {
+    margin: 1px;
+    margin-left: 6px;
+    margin-right: 6px;
+}
+.btn_enabled {
+    opacity: 1.0;
+}
+.btn_disabled {
+    opacity: 0.3;
+}
+/* tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #444;
+    vertical-align: middle;
+}
+tr:nth-child(even) {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+tr:nth-child(odd) {
+    background-color: rgba(0, 0, 0, 0.3);
+}
+.highlight {
+    color: #0f0;
+}
+.dimmed {
+    color: #888;
+}
+.tags {
+    color: #0af;
 }

@@ -100,7 +100,9 @@ class CTagsWrapper:
                                 CTagsWrapperStage.Starting,
                                 CTagsWrapperStage.ConvertationToDb]) else 0)
 
-
+    def state_str(self) -> str:
+        return self.stage.name
+    
     def _get_cur(self):
         if not self._has_tag_db():
             raise RuntimeError("No tag database found. project dir broken.")

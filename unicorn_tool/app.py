@@ -92,6 +92,7 @@ if __name__ == "__main__":
     app.setWindowIcon(QIcon(app_ico))
     window = WindowInfo(800, 600,"Unicorn tool", "Main_Window", app_ico, None )
     
+    GloabalContext.qt_env = True
     GloabalContext.ui_skin = Skin(engine)
     GloabalContext.ui_globals = UnicornUIGlobal.self()
     GloabalContext.ui_globals.setPropertyLoggingEnabled = True

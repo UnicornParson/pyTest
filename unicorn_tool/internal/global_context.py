@@ -12,12 +12,17 @@ class GloabalContext:
     ui_console_controller = None
     tab_controller: TabController = None
     project_config: None
+    qt_env: True
 
     @staticmethod
     def valid() -> bool:
-        return bool(GloabalContext.app_base
-                    and GloabalContext.config
-                    and GloabalContext.ui_globals
-                    and GloabalContext.ui_skin
-                    and GloabalContext.ui_console_controller
-                    and GloabalContext.tab_controller)
+        if not (GloabalContext.app_base and GloabalContext.config and GloabalContext.ui_console_controller):
+            return False
+        if GloabalContext.qt_env:
+            return bool(GloabalContext.app_base
+                        and GloabalContext.config
+                        and GloabalContext.ui_globals
+                        and GloabalContext.ui_skin
+                        and GloabalContext.ui_console_controller
+                        and GloabalContext.tab_controller)
+        return True
