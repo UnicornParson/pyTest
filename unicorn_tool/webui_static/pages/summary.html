@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="/index.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cutive+Mono&display=swap" rel="stylesheet">
+    <!-- <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script> -->
+    <script src="/3rd/vue.global.js"></script>
+
+    
+</head>
+<body></body>
+<div id="content">
+<table>
+    <tr hidden><th></th><th></th></tr>
+    <tr><td>Name</td> <td><span class="highlight">{{ summary_project_name }}</span></td></tr>
+    <tr><td>Source</td><td><span class="highlight">{{ summary_project_src }}</span></td></tr>
+    <tr><td>Lang</td><td><span class="highlight">{{ summary_project_lang }}</span></td></tr>
+    <tr><td>Tags state</td><td>
+        <span class="highlight">{{ summary_project_ctag }} </span>
+        <!-- summary_ctag_btn_class -->
+        <img src="img/run_ctags.svg" :class="['btn', summary_ctag_btn_class]"  title="start ctag" v-on:click="runCtags">
+    </td></tr>
+    <tr><td>Last Indexed</td><td><span class="highlight">{{ summary_project_lastindex }}</span></td></tr>
+</table>
+</div>
+<script src="/pages/summary.js"></script>
+</body></html>

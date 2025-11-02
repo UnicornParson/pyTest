@@ -37,7 +37,7 @@ class Project:
             "project_folder": self.project_folder,
             "ctags_state": self.ctags_wrapper.state_str() if self.ctags_wrapper else "no_ctags"
         }
-    
+
     @staticmethod
     def to_dict_placeholder() -> dict:
         return {
@@ -72,16 +72,16 @@ class Project:
 
     def name(self) -> str:
         return GloabalContext.project_config["name"] if "name" in GloabalContext.project_config else ""
-    
+
     def source(self) -> str:
         return GloabalContext.project_config["source"] if "source" in GloabalContext.project_config else ""
-    
+
     def codefile_template(self) -> str:
         return GloabalContext.project_config["template"] if "template" in GloabalContext.project_config else ""
-    
+
     def lang(self) -> str:
         return GloabalContext.project_config["lang"] if "lang" in GloabalContext.project_config else ""
-    
+
     def last_indexed(self) -> str:
         if "last_ctag" not in GloabalContext.project_config or int(GloabalContext.project_config["last_ctag"]) <= 0:
             return "never"
@@ -100,12 +100,12 @@ class Project:
             self.change_listener()
 
     def _is_config_valid(self, cfg: dict) -> bool:
-        keys = ["source", "last_ctag", "name"] 
+        keys = ["source", "last_ctag", "name"]
         for k in keys:
              if k not in cfg:
                   return False
         return True
-    
+
     def _log_to_console(self, msg):
         assert GloabalContext.ui_console_controller != None
         GloabalContext.ui_console_controller.addLine(f"[project] {msg}")
@@ -115,7 +115,7 @@ class Project:
         if not self._check_project_files:
             raise Exception("Not in project")
         GloabalContext.ui_console_controller.setFileOutput(f"{self.projects_home}/{Project._console_file}")
-        
+
     def _load_index(self):
         self.projects_list = {}
         if not os.path.isfile(self.projects_list_path):
@@ -125,11 +125,11 @@ class Project:
             data = json.load(f)
             self.projects_list = data
 
-    def project_from_src(self, src: str)-> str|None : 
+    def project_from_src(self, src: str)-> str|None :
         s = src.strip()
         if not s:
             raise ValueError('No project name provided')
-        
+
         if s not in list(self.projects_list.values()):
             return None
         i = list(self.projects_list.values()).index(s)
@@ -146,21 +146,21 @@ class Project:
 
     def load_config(self)-> None:
         if not self._check_project_files(self.project_folder):
-            raise ValueError('No project configuration file found') 
+            raise ValueError('No project configuration file found')
         with open(f"{self.project_folder}/{Project._config_fname}", 'r') as file:
             new_config = json.load(file)
             if self._is_config_valid(new_config):
                 GloabalContext.project_config = new_config
             else:
-                raise ValueError('Invalid project configuration')    
-            
+                raise ValueError('Invalid project configuration')
+
     def save_config(self)-> None:
         if not self._check_project_files(self.project_folder):
             raise ValueError('No project configuration file found')
         if not self._is_config_valid(GloabalContext.project_config):
-            raise ValueError('Invalid project configuration')    
-        with open(f"{self.project_folder}/{Project._config_fname}", 'w') as f:   
-             json.dump(GloabalContext.project_config, f, indent=4, ensure_ascii=False) 
+            raise ValueError('Invalid project configuration')
+        with open(f"{self.project_folder}/{Project._config_fname}", 'w') as f:
+             json.dump(GloabalContext.project_config, f, indent=4, ensure_ascii=False)
 
 
     def reindex(self) -> bool:
@@ -209,7 +209,7 @@ class Project:
         self._log_to_console(f"new project {name}")
         self.init_ctags()
         return self.project_folder
-    
+
     def _check_project_files(self, folder):
         return all([os.path.isdir(folder),
                     os.path.exists(f'{folder}/config.json')])

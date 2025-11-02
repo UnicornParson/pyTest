@@ -26,14 +26,25 @@ body {
 .sidebar {
     width: 250px;
     background-color: #252526;
-    padding: 20px;
+    padding: 2px;
     box-sizing: border-box;
+    border-right: 1px solid #5c6370;
+    margin-right: 3px;
 }
 
 .logo {
-    font-size: 1.5em;
-    margin-bottom: 20px;
-    color: #5c6370;
+    background: rgb(30, 30, 30);
+    color: white;
+    padding-top: 5px;
+    padding-right: 2px;
+    padding-bottom: 5px;
+    padding-left: 2px;
+    font-family: "Chakra Petch", sans-serif;
+    font-size: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;  
+    border-bottom: 1px solid #5c6370;
 }
 
 .menu {
@@ -55,7 +66,7 @@ body {
     color: #ffffff;
 }
 
-.editor {
+.content_box {
     flex: 1;
     display: flex;
     flex-direction: column;

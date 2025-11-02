@@ -1,0 +1,34 @@
+{
+    "color": "#ff6b6b",
+    "name": "Root Folder",
+    "content": [
+      {
+        "color": "#4ecdc4",
+        "name": "Documents",
+        "content": [
+          {
+            "color": "#d4a5a5",
+            "name": "Document1.txt"
+          },
+          {
+            "color": "#d4a5a5",
+            "name": "Document2.txt"
+          }
+        ]
+      },
+      {
+        "color": "#4ecdc4",
+        "name": "Images",
+        "content": [
+          {
+            "color": "#d4a5a5",
+            "name": "image1.jpg"
+          },
+          {
+            "color": "#d4a5a5",
+            "name": "image2.jpg"
+          }
+        ]
+      }
+    ]
+  }

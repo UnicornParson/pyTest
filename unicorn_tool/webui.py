@@ -10,6 +10,7 @@ from PyQt6.QtGui import *
 from PyQt6.QtQml import *
 from qml.UnicornUI import *
 from internal import *
+from werkzeug.serving import WSGIRequestHandler
 
 app = flask.Flask(__name__)
 
@@ -53,6 +54,16 @@ def restored_exit(code, folder):
     os.chdir(folder)
     sys.exit(code)
 
+
+class TimedRequestHandler(WSGIRequestHandler):
+    def handle(self):
+        self.start_time = time.time()
+        return super().handle()
+    
+    def log_request(self, code, size=None):
+        duration = time.time() - self.start_time
+        message = f'{self.requestline} {code} {duration:.3f}s'
+        self.log('info', message)
 
 @app.route('/<path:filename>')
 def static_files(filename):
@@ -130,6 +141,9 @@ if __name__ == '__main__':
     print(f"run project {prjname}")
     webui_host = os.getenv('UTOOL_HOST', '127.0.0.1')
     webui_port = int(os.getenv('UTOOL_PORT', '5050'))
-    app.run(host=webui_host, port=webui_port, debug=False)
+    app.run(host=webui_host,
+            port=webui_port,
+            debug=False,
+            request_handler=TimedRequestHandler)
 
     restored_exit(0, current_dir)

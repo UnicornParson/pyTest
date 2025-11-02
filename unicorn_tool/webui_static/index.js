@@ -23,7 +23,35 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-const { createApp } = Vue;
+async function loadComponent(containerId, url)
+{
+    try {
+      const response = await fetch(url);
+      const html = await response.text();
+      const container = document.getElementById(containerId);
+      container.innerHTML = html;
+  
+      // Выполнение inline-скриптов
+      const scripts = container.getElementsByTagName('script');
+      Array.from(scripts).forEach(oldScript => {
+        const newScript = document.createElement('script');
+        newScript.textContent = oldScript.textContent;
+        document.head.appendChild(newScript).parentNode.removeChild(newScript);
+      });
+  
+      // Загрузка внешних скриптов
+      const externalScripts = container.querySelectorAll('script[src]');
+      externalScripts.forEach(script => {
+        const newScript = document.createElement('script');
+        newScript.src = script.src;
+        document.head.appendChild(newScript);
+      });
+    } catch (error) {
+      console.error(`Ошибка загрузки ${url}:`, error);
+    }
+};
+
+const { createApp, ref } = Vue;
 
 createApp({
     data() {
@@ -41,8 +69,10 @@ createApp({
         };
     },
     mounted() {
+        this.loadSummaryPage();
         this.fetchSummary();
         this.startPolling();
+        
     },
     methods: {
         fetchSummary() {
@@ -51,6 +81,7 @@ createApp({
                 .then(data => {
                     this.logo = data.project_name;
                     this.title = "Unicorn Tool:" + data.project_name;
+                    /*
                     this.summary_project_name = data.project_name;
                     this.summary_project_src = data.source;
                     this.summary_project_lang = data.lang;
@@ -58,6 +89,7 @@ createApp({
                     this.summary_can_run_ctag = (data.ctags_state === "Idle")
                     this.summary_project_lastindex = data.last_indexed;
                     this.summary_ctag_btn_class = this.summary_can_run_ctag ? "btn_enabled": "btn_disabled";   
+                    */
                 })
                 .catch(error => console.error('Error fetching project name:', error));
         },
@@ -78,6 +110,13 @@ createApp({
 
                 this.fetchSummary();
             }, 1000);
+        },
+        loadSummaryPage() {
+            loadComponent("content_box", '/pages/summary.html')
+        },
+
+        loadExplorerPage() {
+            loadComponent("content_box", '/pages/explorer.html')
         }
     }
 }).mount('#app');
